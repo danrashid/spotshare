@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>spotshare</title>
+  </head>
+
+  <body>
+    <!-- <textarea readonly id="preview"></textarea> -->
+    <script type="module">
+      import {
+        fetchWithErrorHandling,
+        parseCallbackParams,
+      } from "https://www.danrashid.com/brownies/oauth.js";
+
+      const {
+        code: spotifyCode,
+        clientId: spotifyClientId,
+        githubAccessToken,
+        spotifyCodeVerifier,
+        spotifyRedirectUri,
+      } = parseCallbackParams();
+
+      const body = new URLSearchParams({
+        grant_type: "authorization_code",
+        code: spotifyCode,
+        redirect_uri: spotifyRedirectUri,
+        client_id: spotifyClientId,
+        code_verifier: spotifyCodeVerifier,
+      });
+
+      const { access_token: spotifyAccessToken } = await fetchWithErrorHandling(
+        "https://accounts.spotify.com/api/token",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: body,
+        }
+      );
+
+      // const previewElement = document.getElementById("preview");
+
+      // function fetchWithAccessToken(url, accessToken, handleSuccess) {
+      //   return fetchWithErrorHandling(
+      //     url,
+      //     {
+      //       headers: {
+      //         Authorization: `Bearer ${accessToken}`,
+      //       },
+      //     },
+      //     handleSuccess
+      //   );
+      // }
+
+      // async function fetchTracks(urls, accessToken) {
+      //   await Promise.all(
+      //     urls.map((url) => fetchWithAccessToken(url, accessToken))
+      //   )
+      //     .then((data) => {
+      //       const tracks = data.reduce(
+      //         (a, datum) => [
+      //           ...a,
+      //           ...datum.items.map(({ track, added_at }) => ({
+      //             id: track.id,
+      //             album: track.album.name,
+      //             artist: track.artists[0].name,
+      //             title: track.name,
+      //             addedAt: new Date(added_at).toLocaleDateString(),
+      //           })),
+      //         ],
+      //         []
+      //       );
+      //       previewElement.innerHTML = JSON.stringify(tracks, undefined, 2);
+      //     })
+      //     .catch((error) => {
+      //       console.error("Error:", error);
+      //     });
+      // }
+
+      const url = "https://api.spotify.com/v1/me/tracks";
+      const limit = 50;
+
+      const firstSetoFTracks = await fetchWithErrorHandling(`${url}?limit=1`, {
+        headers: {
+          Authorization: `Bearer ${spotifyAccessToken}`,
+        },
+      });
+
+      console.log(firstSetoFTracks);
+
+      // fetchToken(({ access_token: accessToken }) =>
+      //   fetchWithAccessToken(`${url}?limit=1`, accessToken, ({ total }) => {
+      //     const urls = [];
+      //     for (let offset = 0; offset < total; offset += limit) {
+      //       urls.push(`${url}?limit=${limit}&offset=${offset}`);
+      //     }
+      //     fetchTracks(urls, accessToken);
+      //   })
+      // );
+    </script>
+  </body>
+</html>

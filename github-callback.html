@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>spotshare</title>
+  </head>
+
+  <body>
+    <form id="authorize" action="https://accounts.spotify.com/authorize">
+      <input type="hidden" name="response_type" value="code" />
+      <input type="hidden" name="code_challenge_method" value="S256" />
+      <input
+        type="hidden"
+        name="scope"
+        value="user-modify-playback-state user-library-read"
+      />
+      <input type="hidden" id="redirect_uri" name="redirect_uri" />
+      <input type="hidden" id="state" name="state" />
+      <input type="hidden" id="code_challenge" name="code_challenge" />
+      <script type="module">
+        import {
+          fetchWithErrorHandling,
+          generateCodeChallenge,
+          generateRandomString,
+          parseCallbackParams,
+          populateStateValue,
+        } from "https://www.danrashid.com/brownies/oauth.js";
+
+        const {
+          code: githubCode,
+          clientId: githubClientId,
+          githubRedirectUri,
+        } = parseCallbackParams();
+
+        const body = new URLSearchParams({
+          client_id: githubClientId,
+          code: githubCode,
+          redirect_uri: githubRedirectUri,
+        });
+
+        const githubAccessToken = await fetchWithErrorHandling(
+          "http://localhost:9900/",
+          {
+            method: "POST",
+            body: body,
+          }
+        );
+
+        const spotifyRedirectUri =
+          window.location.origin + "/spotify-callback.html";
+        const spotifyCodeVerifier = generateRandomString(128);
+
+        document.getElementById("redirect_uri").value = spotifyRedirectUri;
+        document.getElementById("authorize").addEventListener(
+          "submit",
+          populateStateValue({
+            spotifyRedirectUri,
+            spotifyCodeVerifier,
+            githubAccessToken,
+          })
+        );
+
+        const codeChallenge = await generateCodeChallenge(spotifyCodeVerifier);
+        document.getElementById("code_challenge").value = codeChallenge;
+      </script>
+      <p>
+        <label>
+          Spotify Client ID<br />
+          <input
+            type="text"
+            id="client_id"
+            name="client_id"
+            required
+            autofocus
+          />
+        </label>
+      </p>
+      <p>
+        <input type="submit" />
+      </p>
+    </form>
+  </body>
+</html>

@@ -6,11 +6,33 @@
   </head>
 
   <body>
-    <form action="2.spotify.auth.html">
+    <form id="authorize" action="https://github.com/login/oauth/authorize">
+      <input type="hidden" id="redirect_uri" name="redirect_uri" />
+      <input type="hidden" id="state" name="state" />
+      <input type="hidden" name="allow_signup" value="false" />
+      <script type="module">
+        import { populateStateValue } from "https://www.danrashid.com/brownies/oauth.js";
+
+        const githubRedirectUri =
+          window.location.origin + "/github-callback.html";
+        document.getElementById("redirect_uri").value = githubRedirectUri;
+        document
+          .getElementById("authorize")
+          .addEventListener(
+            "submit",
+            populateStateValue({ githubRedirectUri })
+          );
+      </script>
       <p>
         <label>
-          Spotify Client ID<br />
-          <input type="text" name="client_id" required autofocus />
+          GitHub Client ID<br />
+          <input
+            type="text"
+            id="client_id"
+            name="client_id"
+            required
+            autofocus
+          />
         </label>
       </p>
       <p>
