@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>spotshare</title>
+    <style>
+      th {
+        text-align: left;
+      }
+    </style>
+  </head>
+
+  <body>
+    <table>
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Album</th>
+          <th>Artist</th>
+        </tr>
+      </thead>
+      <tbody id="data"></tbody>
+    </table>
+    <script type="module">
+      import { fetchToken } from "https://www.danrashid.com/brownies/scripts.js";
+
+      const dataElement = document.getElementById("data");
+
+      function fetchTracks(url, accessToken) {
+        fetch(url, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("HTTP status " + response.status);
+            }
+            return response.json();
+          })
+          .then(async ({ items, next }) => {
+            const trs = [];
+            items.forEach(({ track }) => {
+              const tr = document.createElement("tr");
+              [track.album.name, track.artists[0].name, track.name].forEach(
+                (text) => {
+                  const td = document.createElement("td");
+                  td.appendChild(document.createTextNode(text));
+                  tr.appendChild(td);
+                }
+              );
+              trs.push(tr);
+            });
+            dataElement.append(...trs);
+
+            if (next) {
+              await fetchTracks(next, accessToken);
+            }
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+          });
+      }
+
+      fetchToken((data) =>
+        fetchTracks(
+          "https://api.spotify.com/v1/me/tracks?limit=50",
+          data["access_token"]
+        )
+      );
+    </script>
+  </body>
+</html>
