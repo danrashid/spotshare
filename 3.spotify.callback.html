@@ -22,23 +22,28 @@
       <tbody id="data"></tbody>
     </table>
     <script type="module">
-      import { fetchToken } from "https://www.danrashid.com/brownies/scripts.js";
+      import {
+        fetchToken,
+        fetchWithErrorHandling,
+      } from "https://www.danrashid.com/brownies/scripts.js";
 
       const dataElement = document.getElementById("data");
 
-      function fetchTracks(url, accessToken) {
-        fetch(url, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
+      function fetchWithAccessToken(url, accessToken, handleSuccess) {
+        return fetchWithErrorHandling(
+          url,
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
           },
-        })
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error("HTTP status " + response.status);
-            }
-            return response.json();
-          })
-          .then(async ({ items, next }) => {
+          handleSuccess
+        );
+      }
+
+      function fetchTracksAsync(urls, accessToken) {
+        urls.forEach((url) => {
+          fetchWithAccessToken(url, accessToken, ({ items }) => {
             const trs = [];
             items.forEach(({ track }) => {
               const tr = document.createElement("tr");
@@ -52,21 +57,21 @@
               trs.push(tr);
             });
             dataElement.append(...trs);
-
-            if (next) {
-              await fetchTracks(next, accessToken);
-            }
-          })
-          .catch((error) => {
-            console.error("Error:", error);
           });
+        });
       }
 
-      fetchToken((data) =>
-        fetchTracks(
-          "https://api.spotify.com/v1/me/tracks?limit=50",
-          data["access_token"]
-        )
+      const url = "https://api.spotify.com/v1/me/tracks";
+      const limit = 50;
+
+      fetchToken(({ access_token: accessToken }) =>
+        fetchWithAccessToken(`${url}?limit=1`, accessToken, ({ total }) => {
+          const urls = [];
+          for (let offset = 0; offset < total; offset += limit) {
+            urls.push(`${url}?limit=${limit}&offset=${offset}`);
+          }
+          fetchTracksAsync(urls, accessToken);
+        })
       );
     </script>
   </body>
