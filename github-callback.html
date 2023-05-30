@@ -39,7 +39,7 @@
         });
 
         const githubAccessToken = await fetchWithErrorHandling(
-          "http://localhost:9900/",
+          "http://localhost:9900/github_access_token",
           {
             method: "POST",
             body: body,
