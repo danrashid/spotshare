@@ -6,6 +6,29 @@
   </head>
 
   <body>
+    <dialog id="put-tracks-success">
+      <p id="html_url"></p>
+      <form method="dialog">
+        <button>OK</button>
+      </form>
+    </dialog>
+    <form id="put-tracks">
+      <p>
+        <label
+          >GitHub owner<br />
+          <input type="text" required id="github-owner" name="github-owner" />
+        </label>
+      </p>
+      <p>
+        <label
+          >GitHub repo<br />
+          <input type="text" required id="github-repo" name="github-repo" />
+        </label>
+      </p>
+      <p>
+        <input type="submit" id="submit-put-tracks" disabled />
+      </p>
+    </form>
     <script type="module">
       import {
         fetchWithErrorHandling,
@@ -40,11 +63,15 @@
         }
       );
 
-      const fetchWithAccessToken = async (url, accessToken, options = {}) =>
+      const fetchWithAccessToken = async (
+        url,
+        accessToken,
+        { headers, ...options } = {}
+      ) =>
         await fetchWithErrorHandling(url, {
           headers: {
             Authorization: `Bearer ${accessToken}`,
-            ...options.headers,
+            ...headers,
           },
           ...options,
         });
@@ -86,6 +113,54 @@
       tracks.sort((a, b) => b.addedAt - a.addedAt);
 
       const content = Base64.encode(JSON.stringify(tracks, undefined, 2));
+
+      const handlePutTracks = async (event) => {
+        event.preventDefault();
+        const githubOwner = document.getElementById("github-owner").value;
+        const githubRepo = document.getElementById("github-repo").value;
+
+        const existingFile =
+          (await fetchWithAccessToken(
+            `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/tracks.json`,
+            githubAccessToken,
+            {
+              headers: {
+                Accept: "application/vnd.github+json",
+                "X-GitHub-Api-Version": "2022-11-28",
+              },
+            }
+          )) || {};
+
+        const {
+          content: { html_url },
+        } = await fetchWithAccessToken(
+          `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/tracks.json`,
+          githubAccessToken,
+          {
+            method: "PUT",
+            headers: {
+              Accept: "application/vnd.github+json",
+              "X-GitHub-Api-Version": "2022-11-28",
+            },
+            body: JSON.stringify({
+              message: "Updating tracks.json via spotshare",
+              content,
+              sha: existingFile.sha,
+            }),
+          }
+        );
+
+        document.getElementById(
+          "html_url"
+        ).innerHTML = `Successfully PUT <a href="${html_url}">${html_url}</a>`;
+        document.getElementById("put-tracks-success").show();
+      };
+
+      document
+        .getElementById("put-tracks")
+        .addEventListener("submit", handlePutTracks);
+
+      document.getElementById("submit-put-tracks").disabled = false;
     </script>
   </body>
 </html>

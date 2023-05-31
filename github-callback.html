@@ -38,13 +38,14 @@
           redirect_uri: githubRedirectUri,
         });
 
-        const githubAccessToken = await fetchWithErrorHandling(
-          "http://localhost:9900/github_access_token",
-          {
-            method: "POST",
-            body: body,
-          }
-        );
+        const { access_token: githubAccessToken } =
+          await fetchWithErrorHandling(
+            "http://localhost:9900/github_access_token",
+            {
+              method: "POST",
+              body: body,
+            }
+          );
 
         const spotifyRedirectUri =
           window.location.origin + "/spotify-callback.html";
