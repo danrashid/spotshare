@@ -90,7 +90,6 @@
               });
               playlist.tracks.push({
                 id: track.id,
-                album: track.album.name,
                 artist_ids: track.artists.map(({ id }) => id),
                 title: track.name,
                 addedAt: new Date(added_at).valueOf(),
