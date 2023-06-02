@@ -84,7 +84,7 @@
               ...datum.items.map(({ track, added_at }) => ({
                 id: track.id,
                 album: track.album.name,
-                artists: track.artists.map((artist) => artist.name),
+                artists: track.artists.map(({ name, uri }) => ({ name, uri })),
                 title: track.name,
                 uri: track.uri,
                 addedAt: new Date(added_at).valueOf(),
