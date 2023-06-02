@@ -86,6 +86,7 @@
                 album: track.album.name,
                 artists: track.artists.map((artist) => artist.name),
                 title: track.name,
+                uri: track.uri,
                 addedAt: new Date(added_at).valueOf(),
               })),
             ],
