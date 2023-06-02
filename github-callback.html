@@ -30,6 +30,8 @@
           code: githubCode,
           clientId: githubClientId,
           githubRedirectUri,
+          githubOwner,
+          githubRepo,
         } = parseCallbackParams();
 
         const body = new URLSearchParams({
@@ -43,23 +45,26 @@
             "http://localhost:9900/github_access_token",
             {
               method: "POST",
-              body: body,
+              body,
             }
           );
+
+        document.getElementById("submit_authorize").disabled = false;
 
         const spotifyRedirectUri =
           window.location.origin + "/spotify-callback.html";
         const spotifyCodeVerifier = generateRandomString(128);
 
         document.getElementById("redirect_uri").value = spotifyRedirectUri;
-        document.getElementById("authorize").addEventListener(
-          "submit",
+        document.getElementById("authorize").addEventListener("submit", () => {
           populateStateValue({
             spotifyRedirectUri,
             spotifyCodeVerifier,
             githubAccessToken,
-          })
-        );
+            githubOwner,
+            githubRepo,
+          });
+        });
 
         const codeChallenge = await generateCodeChallenge(spotifyCodeVerifier);
         document.getElementById("code_challenge").value = codeChallenge;
@@ -77,7 +82,7 @@
         </label>
       </p>
       <p>
-        <input type="submit" />
+        <input type="submit" id="submit_authorize" disabled />
       </p>
     </form>
   </body>

@@ -6,29 +6,7 @@
   </head>
 
   <body>
-    <dialog id="put-tracks-success">
-      <p id="html_url"></p>
-      <form method="dialog">
-        <button>OK</button>
-      </form>
-    </dialog>
-    <form id="put-tracks">
-      <p>
-        <label
-          >GitHub owner<br />
-          <input type="text" required id="github-owner" name="github-owner" />
-        </label>
-      </p>
-      <p>
-        <label
-          >GitHub repo<br />
-          <input type="text" required id="github-repo" name="github-repo" />
-        </label>
-      </p>
-      <p>
-        <input type="submit" id="submit-put-tracks" disabled />
-      </p>
-    </form>
+    <pre id="status">Loading...</pre>
     <script type="module">
       import {
         fetchWithErrorHandling,
@@ -36,12 +14,18 @@
       } from "https://www.danrashid.com/brownies/oauth.js";
       import { Base64 } from "https://cdn.jsdelivr.net/npm/js-base64@3.7.5/base64.mjs";
 
+      const updateStatus = (line) => {
+        document.getElementById("status").innerHTML += `\n${line}`;
+      };
+
       const {
         code: spotifyCode,
         clientId: spotifyClientId,
         githubAccessToken,
         spotifyCodeVerifier,
         spotifyRedirectUri,
+        githubOwner,
+        githubRepo,
       } = parseCallbackParams();
 
       const body = new URLSearchParams({
@@ -59,7 +43,7 @@
           headers: {
             "Content-Type": "application/x-www-form-urlencoded",
           },
-          body: body,
+          body,
         }
       );
 
@@ -84,6 +68,8 @@
         spotifyAccessToken
       );
 
+      updateStatus(`Found ${total.toLocaleString()} tracks...`);
+
       const urls = Array(Math.ceil(total / limit))
         .fill(undefined)
         .map((_, i) => `${url}?limit=${limit}&offset=${i * limit}`);
@@ -98,7 +84,7 @@
               ...datum.items.map(({ track, added_at }) => ({
                 id: track.id,
                 album: track.album.name,
-                artist: track.artists[0].name,
+                artists: track.artists.map((artist) => artist.name),
                 title: track.name,
                 addedAt: new Date(added_at).valueOf(),
               })),
@@ -114,53 +100,32 @@
 
       const content = Base64.encode(JSON.stringify(tracks, undefined, 2));
 
-      const handlePutTracks = async (event) => {
-        event.preventDefault();
-        const githubOwner = document.getElementById("github-owner").value;
-        const githubRepo = document.getElementById("github-repo").value;
+      const api_url = `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/tracks.json`;
 
-        const existingFile =
-          (await fetchWithAccessToken(
-            `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/tracks.json`,
-            githubAccessToken,
-            {
-              headers: {
-                Accept: "application/vnd.github+json",
-                "X-GitHub-Api-Version": "2022-11-28",
-              },
-            }
-          )) || {};
+      const { sha } =
+        (await fetchWithAccessToken(api_url, githubAccessToken, {
+          headers: {
+            Accept: "application/vnd.github+json",
+            "X-GitHub-Api-Version": "2022-11-28",
+          },
+        })) || {};
 
-        const {
-          content: { html_url },
-        } = await fetchWithAccessToken(
-          `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/tracks.json`,
-          githubAccessToken,
-          {
-            method: "PUT",
-            headers: {
-              Accept: "application/vnd.github+json",
-              "X-GitHub-Api-Version": "2022-11-28",
-            },
-            body: JSON.stringify({
-              message: "Updating tracks.json via spotshare",
-              content,
-              sha: existingFile.sha,
-            }),
-          }
-        );
+      const {
+        content: { html_url },
+      } = await fetchWithAccessToken(api_url, githubAccessToken, {
+        method: "PUT",
+        headers: {
+          Accept: "application/vnd.github+json",
+          "X-GitHub-Api-Version": "2022-11-28",
+        },
+        body: JSON.stringify({
+          message: "Updating tracks.json via spotshare",
+          content,
+          sha,
+        }),
+      });
 
-        document.getElementById(
-          "html_url"
-        ).innerHTML = `Successfully PUT <a href="${html_url}">${html_url}</a>`;
-        document.getElementById("put-tracks-success").show();
-      };
-
-      document
-        .getElementById("put-tracks")
-        .addEventListener("submit", handlePutTracks);
-
-      document.getElementById("submit-put-tracks").disabled = false;
+      updateStatus(`Uploaded ${html_url}.`);
     </script>
   </body>
 </html>

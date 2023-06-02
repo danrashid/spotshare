@@ -16,12 +16,14 @@
         const githubRedirectUri =
           window.location.origin + "/github-callback.html";
         document.getElementById("redirect_uri").value = githubRedirectUri;
-        document
-          .getElementById("authorize")
-          .addEventListener(
-            "submit",
-            populateStateValue({ githubRedirectUri })
-          );
+
+        document.getElementById("authorize").addEventListener("submit", () => {
+          populateStateValue({
+            githubRedirectUri,
+            githubOwner: document.getElementById("github_owner").value,
+            githubRepo: document.getElementById("github_repo").value,
+          });
+        });
       </script>
       <p>
         <label>
@@ -33,6 +35,18 @@
             required
             autofocus
           />
+        </label>
+      </p>
+      <p>
+        <label
+          >GitHub Owner<br />
+          <input type="text" required id="github_owner" />
+        </label>
+      </p>
+      <p>
+        <label
+          >GitHub Repo<br />
+          <input type="text" required id="github_repo" />
         </label>
       </p>
       <p>
