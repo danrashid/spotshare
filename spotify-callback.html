@@ -70,6 +70,11 @@
 
       updateStatus(`Found ${total.toLocaleString()} tracks...`);
 
+      const playlist = {
+        artists: {},
+        tracks: [],
+      };
+
       const urls = Array(Math.ceil(total / limit))
         .fill(undefined)
         .map((_, i) => `${url}?limit=${limit}&offset=${i * limit}`);
@@ -77,31 +82,31 @@
       const tracks = await Promise.all(
         urls.map((url) => fetchWithAccessToken(url, spotifyAccessToken))
       )
-        .then((data) =>
-          data.reduce(
-            (a, datum) => [
-              ...a,
-              ...datum.items.map(({ track, added_at }) => ({
+        .then((data) => {
+          data.forEach(({ items }) => {
+            items.forEach(({ track, added_at }) => {
+              track.artists.forEach(({ name, id }) => {
+                playlist.artists[id] = name;
+              });
+              playlist.tracks.push({
                 id: track.id,
                 album: track.album.name,
-                artists: track.artists.map(({ name, uri }) => ({ name, uri })),
+                artist_ids: track.artists.map(({ id }) => id),
                 title: track.name,
-                uri: track.uri,
                 addedAt: new Date(added_at).valueOf(),
-              })),
-            ],
-            []
-          )
-        )
+              });
+            });
+          });
+        })
         .catch((error) => {
           console.error("Error:", error);
         });
 
-      tracks.sort((a, b) => b.addedAt - a.addedAt);
+      playlist.tracks.sort((a, b) => b.addedAt - a.addedAt);
 
-      const content = Base64.encode(JSON.stringify(tracks, undefined, 2));
-
-      const api_url = `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/tracks.json`;
+      const content = Base64.encode(JSON.stringify(playlist, undefined, 2));
+      const filename = "playlist.json";
+      const api_url = `https://api.github.com/repos/${githubOwner}/${githubRepo}/contents/${filename}`;
 
       const { sha } =
         (await fetchWithAccessToken(api_url, githubAccessToken, {
@@ -120,7 +125,7 @@
           "X-GitHub-Api-Version": "2022-11-28",
         },
         body: JSON.stringify({
-          message: "Updating tracks.json via spotshare",
+          message: `Updating ${filename} via spotshare`,
           content,
           sha,
         }),
