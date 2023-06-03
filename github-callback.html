@@ -42,7 +42,7 @@
 
         const { access_token: githubAccessToken } =
           await fetchWithErrorHandling(
-            "http://localhost:9900/github_access_token",
+            "http://localhost:9000/cgi-bin/github-access-token.py",
             {
               method: "POST",
               body,

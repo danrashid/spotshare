@@ -1,3 +1,3 @@
-`DEBUG=* GITHUB_CLIENT_SECRET=whatever node server.js`
+`GITHUB_CLIENT_SECRET=whatever python3 -m http.server --cgi 9000`
 
-`python3 -m http.server 9000`
+Then visit [http://localhost:9000/](http://localhost:9000/)
