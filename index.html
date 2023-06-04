@@ -11,14 +11,15 @@
       <input type="hidden" id="state" name="state" />
       <input type="hidden" name="allow_signup" value="false" />
       <script type="module">
-        import { populateStateValue } from "https://www.danrashid.com/brownies/oauth.js";
+        import { encodeStateValue } from "https://www.danrashid.com/brownies/oauth.js";
 
         const githubRedirectUri =
           window.location.origin + "/github-callback.html";
         document.getElementById("redirect_uri").value = githubRedirectUri;
 
         document.getElementById("authorize").addEventListener("submit", () => {
-          populateStateValue({
+          document.getElementById("state").value = encodeStateValue({
+            clientId: document.getElementById("client_id").value,
             githubRedirectUri,
             githubOwner: document.getElementById("github_owner").value,
             githubRepo: document.getElementById("github_repo").value,

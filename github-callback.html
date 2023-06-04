@@ -19,7 +19,7 @@
           generateCodeChallenge,
           generateRandomString,
           parseCallbackParams,
-          populateStateValue,
+          encodeStateValue,
         } from "https://www.danrashid.com/brownies/oauth.js";
 
         const {
@@ -53,7 +53,8 @@
 
         document.getElementById("redirect_uri").value = spotifyRedirectUri;
         document.getElementById("authorize").addEventListener("submit", () => {
-          populateStateValue({
+          document.getElementById("state").value = encodeStateValue({
+            clientId: document.getElementById("client_id").value,
             spotifyRedirectUri,
             spotifyCodeVerifier,
             githubAccessToken,
