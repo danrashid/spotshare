@@ -92,6 +92,7 @@
                 id: track.id,
                 artist_ids: track.artists.map(({ id }) => id),
                 title: track.name,
+                popularity: track.popularity,
                 addedAt: new Date(added_at).valueOf(),
               });
             });

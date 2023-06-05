@@ -9,8 +9,10 @@ client_secret = os.getenv("GITHUB_CLIENT_SECRET")
 
 form = cgi.FieldStorage()
 
-body = urllib.parse.urlencode({"client_secret": client_secret} | {
-    key: form[key].value for key in form.keys()})
+body = urllib.parse.urlencode({
+    **{"client_secret": client_secret},
+    **{key: form[key].value for key in form.keys()}
+})
 
 content_type = "application/json"
 
