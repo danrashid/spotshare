@@ -79,7 +79,7 @@
         .fill(undefined)
         .map((_, i) => `${url}?limit=${limit}&offset=${i * limit}`);
 
-      const tracks = await Promise.all(
+      await Promise.all(
         urls.map((url) => fetchWithAccessToken(url, spotifyAccessToken))
       )
         .then((data) => {
