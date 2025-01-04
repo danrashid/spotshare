@@ -18,7 +18,7 @@
           fetchWithErrorHandling,
           generateCodeChallenge,
           generateRandomString,
-          parseCallbackParams,
+          handleQueryStringParams,
           encodeStateValue,
         } from "https://www.danrashid.com/brownies/oauth.js";
 
@@ -28,7 +28,7 @@
           githubRedirectUri,
           githubOwner,
           githubRepo,
-        } = parseCallbackParams();
+        } = handleQueryStringParams();
 
         const body = new URLSearchParams({
           client_id: githubClientId,

@@ -10,7 +10,7 @@
     <script type="module">
       import {
         fetchWithErrorHandling,
-        parseCallbackParams,
+        handleQueryStringParams,
       } from "https://www.danrashid.com/brownies/oauth.js";
       import { Base64 } from "https://cdn.jsdelivr.net/npm/js-base64@3.7.5/base64.mjs";
 
@@ -26,7 +26,7 @@
         spotifyRedirectUri,
         githubOwner,
         githubRepo,
-      } = parseCallbackParams();
+      } = handleQueryStringParams();
 
       const body = new URLSearchParams({
         grant_type: "authorization_code",
